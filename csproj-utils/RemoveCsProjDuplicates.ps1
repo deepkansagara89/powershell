@@ -2,13 +2,15 @@
 .SYNOPSIS  
     Finds all csproj in the supplied path and removes all the duplicate entries.
 .DESCRIPTION  
-    This script finds all duplicate <content> and <compile> entries in csproj files,
+    This script finds all duplicate <content> , <compile> , <Reference>, <EmbeddedResource>, <None>,<Page>,<Resource>,<ProjectReference>,<Folder> entries in csproj files,
     and removes them.
 .NOTES  
     File Name  : RemoveCsProjDuplicates.ps1  
-    Author     : Rodrigo F. Fernandes - github.com/rodrigoff
+    Original Author     : Rodrigo F. Fernandes - github.com/rodrigoff
+	extended to support all entries types	Author    : Deep Kansagara
 .LINK  
-    https://github.com/rodrigoff/powershell/blob/master/csproj-utils/RemoveCsProjDuplicates.ps1
+    - base file 
+	https://github.com/rodrigoff/powershell/blob/master/csproj-utils/RemoveCsProjDuplicates.ps1 
 #>
 Param(
     [string]$filePath = $(throw "You must supply a file path")
@@ -28,9 +30,10 @@ Foreach($projectFile in $projectFiles) {
     $xml = [xml] (Get-Content $projectFile)
     
     Write-Host "> $projectFile " -Foreground Green
-
-    $entries = $xml.Project.ItemGroup.Compile + $xml.Project.ItemGroup.Content | Group-Object Include
-    $duplicateEntries = $entries | Where-Object Count -gt 1
+	
+$entries = $xml.Project.ItemGroup.Compile + $xml.Project.ItemGroup.Content +$xml.Project.ItemGroup.Reference + $xml.Project.ItemGroup.EmbeddedResource + $xml.Project.ItemGroup.None + $xml.Project.ItemGroup.Page + $xml.Project.ItemGroup.Resource + $xml.Project.ItemGroup.ProjectReference + $xml.Project.ItemGroup.Folder | Group-Object Include
+    
+	$duplicateEntries = $entries | Where-Object Count -gt 1
 
     "- Found $($duplicateEntries.Count) duplicate entries"
 
@@ -50,4 +53,3 @@ Foreach($projectFile in $projectFiles) {
 
     "- Removed $($duplicateEntries.Count) duplicate entries"
 }
-
